@@ -2,35 +2,61 @@ import streamlit as st
 from utils import *
 
 
-st.title("Chat with Dada Wakili")
+def get_complexity_details(slider_value):
+    instructions = ""
 
-st.sidebar.title("Model Responses")
-slider_value = st.sidebar.slider("Response complexity", min_value=0, max_value=10, value=5)
+    # For public audience (layman)
+    if 0 < slider_value <= 3:
+        instructions = (
+            "Make the responses simple and easy to understand, using plain language and minimal technical terms. "
+            "Assume the audience has no prior knowledge of the subject matter."
+        )
+    # For mixed audience (layman and professionals)
+    elif 4 <= slider_value <= 7:
+        instructions = (
+            "Make the response clear and accessible to both a layman and a professional lawyer. "
+            "Use a balanced level of technical language that explains complex concepts "
+            "without overwhelming the layperson, "
+            "while still being understandable to professionals."
+        )
+    # For professional lawyers
+    elif slider_value > 7:
+        instructions = (
+            "Make the response highly professional and sophisticated, tailored for legal professionals. "
+            "Use precise legal language and include any necessary technical terms that a "
+            "lawyer would understand and find useful for their work."
+        )
 
-st.markdown("<hr>", unsafe_allow_html=True)
-
-st.sidebar.title("Supported Features")
-
-use_case = ""
-
-uploaded_file = st.sidebar.file_uploader("Upload a document", type=["txt", "pdf", "docx"])
-
-checkbox_legal_research = st.sidebar.checkbox("Legal Research")
-checkbox_thematic_analysis = st.sidebar.checkbox("Thematic Analysis")
-checkbox_summarise_document = st.sidebar.checkbox("Summarise Document")
-checkbox_validate_document = st.sidebar.checkbox("Validate Document")
-checkbox_explain_clause = st.sidebar.checkbox("Explain a Clause")
-
-# Store chat history
-if "messages" not in st.session_state:
-    st.session_state["messages"] = []
-
-
-# Function to read the uploaded file conten
+    return instructions
 
 
 if __name__ == "__main__":
-    # Prepare prompt if the checkbox is selected
+    st.title("Chat with Dada Wakili")
+
+    st.sidebar.title("Model Responses")
+    slider_value = st.sidebar.slider("Response complexity", min_value=0, max_value=10, value=5)
+    st.write(f"Response Complexity : {slider_value}")
+
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+
+    st.sidebar.title("Supported Features")
+
+    instruction = get_complexity_details(slider_value)
+    use_case = ""
+
+    uploaded_file = st.sidebar.file_uploader("Upload a document", type=["txt", "pdf", "docx"])
+
+    checkbox_legal_research = st.sidebar.checkbox("Legal Research")
+    checkbox_thematic_analysis = st.sidebar.checkbox("Thematic Analysis")
+    checkbox_summarise_document = st.sidebar.checkbox("Summarise Document")
+    checkbox_validate_document = st.sidebar.checkbox("Validate Document")
+    checkbox_explain_clause = st.sidebar.checkbox("Explain a Clause")
+
+    # Store chat history
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = []
+
     prompt_fine_tune = ""
 
     if checkbox_legal_research or checkbox_thematic_analysis or checkbox_summarise_document or checkbox_validate_document or checkbox_explain_clause:
@@ -40,20 +66,33 @@ if __name__ == "__main__":
     if uploaded_file is not None:
         file_content = read_uploaded_file(uploaded_file)
         if checkbox_legal_research:
-            prompt_fine_tune = f"You are a researcher. Analyse the attached document based on the uploaded files and on what you know. Return valid, well-thought-out responses. The uploaded file's content is: {file_content}"
+            prompt_fine_tune = \
+                f"You are a researcher. Analyse the attached document based on the uploaded files " \
+                f"and on what you know. Return valid, well-thought-out responses. " \
+                f"{instruction}" \
+                f"The uploaded file's content is: {file_content}."
             use_case = "Research initiated ..."
         elif checkbox_thematic_analysis:
-            prompt_fine_tune = f"Perform an in-depth thematic analysis of the uploaded document. The uploaded file's content is: {file_content}"
-            use_case = "Thematic analysis iniated ..."
+            prompt_fine_tune = \
+                f"Perform an in-depth thematic analysis of the uploaded document." \
+                f"{instruction}" \
+                f" The uploaded file's content is: {file_content}"
+            use_case = "Thematic analysis initiated ..."
         elif checkbox_summarise_document:
-            use_case = "Text summarisation initiated ... "
-            prompt_fine_tune = f"Summarise the uploaded document. The uploaded file's content is: {file_content}"
+            use_case = "Text summarization initiated ... "
+            prompt_fine_tune = f"Summarise the uploaded document. " \
+                               f"{instruction}" \
+                               f"The uploaded file's content is: {file_content}"
         elif checkbox_validate_document:
             use_case = "Document validation initiated ..."
-            prompt_fine_tune = f"Validate the uploaded document. The uploaded file's content is: {file_content}"
+            prompt_fine_tune = f"Validate the uploaded document. " \
+                               f"{instruction}" \
+                               f"The uploaded file's content is: {file_content}"
         elif checkbox_explain_clause:
             use_case = "Legal clauses explanation initiated ... "
-            prompt_fine_tune = f"Explain all legal clauses in the uploaded document. Ignore any clauses that are non-legal. The uploaded file's content is: {file_content}"
+            prompt_fine_tune = f"Explain all legal clauses in the uploaded document." \
+                               f"{instruction}" \
+                               f" Ignore any clauses that are non-legal. The uploaded file's content is: {file_content}"
 
     if use_case != "":
         st.write(use_case)

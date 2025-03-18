@@ -3,7 +3,13 @@ from utils import *
 
 
 st.title("Chat with Dada Wakili")
-st.sidebar.title("Features")
+
+st.sidebar.title("Model Responses")
+slider_value = st.sidebar.slider("Response complexity", min_value=0, max_value=10, value=5)
+
+st.markdown("<hr>", unsafe_allow_html=True)
+
+st.sidebar.title("Supported Features")
 
 use_case = ""
 
